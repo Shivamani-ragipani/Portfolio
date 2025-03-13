@@ -331,7 +331,7 @@ main {
   transition: var(--transition-2);
 }
 
-.sidebar.active { max-height: 405px; }
+.sidebar.active { max-height: 550px; }
 
 .sidebar-info {
   position: relative;
@@ -794,7 +794,7 @@ main {
 
 
 /**
- * education and experience 
+ * education and certificates 
  */
 
 .timeline { margin-bottom: 30px; }
@@ -898,7 +898,7 @@ main {
 
 
 /*-----------------------------------*\
-  #PORTFOLIO
+  #Projects
 \*-----------------------------------*/
 
 .filter-list { display: none; }
@@ -1268,6 +1268,8 @@ textarea.form-input::-webkit-resizer { display: none; }
   .clients-item { min-width: calc(33.33% - 10px); }
 
 
+  .sidebar.active { max-height: 600px; }
+
 
   /**
    * #PORTFOLIO, BLOG 
@@ -1359,7 +1361,7 @@ textarea.form-input::-webkit-resizer { display: none; }
     margin-bottom: 30px;
   }
 
-  .sidebar.active { max-height: 584px; }
+  .sidebar.active { max-height: 600px; }
 
   .sidebar-info { gap: 25px; }
 
