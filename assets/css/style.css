@@ -1052,6 +1052,15 @@ main {
   font-weight: var(--fw-300);
 }
 
+.resized-image {
+  width: 600px;
+  height: 450px;
+  max-width: 600px;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 16px;
+}
+
 
 
 
