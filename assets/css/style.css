@@ -982,10 +982,11 @@ main {
 .project-img {
   position: relative;
   width: 100%;
-  height: 200px;
+  height: 220px;          /* SAME height for all thumbnails */
   border-radius: 16px;
   overflow: hidden;
   margin-bottom: 15px;
+  background: #111;      /* fallback background */
 }
 
 .project-img::before {
@@ -1026,10 +1027,13 @@ main {
 
 .project-item-icon-box ion-icon { --ionicon-stroke-width: 50px; }
 
+
+
 .project-img img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: cover;     /* fills box, no distortion */
+  object-position: center;
   transition: var(--transition-1);
 }
 
