@@ -60,69 +60,6 @@ sidebarBtn.addEventListener("click", function () { elementToggleFunc(sidebar); }
 //     }
 // });
 
-
-
-
-document.addEventListener("DOMContentLoaded", () => {
-  const sidebar = document.getElementById("draggableSidebar");
-
-  if (window.innerWidth < 1500) {
-    sidebar.removeAttribute("id");
-    return; 
-  }
-
-  let isDragging = false, offsetX = 0, offsetY = 0;
-
-  const rect = sidebar.getBoundingClientRect();
-  sidebar.style.left = `${rect.left}px`;
-  sidebar.style.top = `${rect.top}px`;
-  sidebar.style.margin = "0";
-  sidebar.style.cursor = "grab";
-  sidebar.style.transition = "left 0.2s ease-out, top 0.2s ease-out"; 
-
-  const onMouseDown = (e) => {
-    isDragging = true;
-    offsetX = e.clientX - sidebar.offsetLeft;
-    offsetY = e.clientY - sidebar.offsetTop;
-
-    sidebar.style.cursor = "grabbing";
-    sidebar.style.zIndex = "1000"; // Bring to front
-    sidebar.style.transition = "none"; // Remove transition during drag for smoothness
-  };
-
-  const onMouseMove = (e) => {
-    if (!isDragging) return;
-
-    const newX = e.clientX - offsetX;
-    const newY = e.clientY - offsetY;
-
-    const maxX = window.innerWidth - sidebar.offsetWidth;
-    const maxY = window.innerHeight - sidebar.offsetHeight;
-
-    requestAnimationFrame(() => {
-      sidebar.style.position = "absolute"; // Changes position to allow dragging
-      sidebar.style.left = `${Math.max(0, Math.min(newX, maxX))}px`;
-      sidebar.style.top = `${Math.max(0, Math.min(newY, maxY))}px`;
-    });
-  };
-
-  const onMouseUp = () => {
-    isDragging = false;
-    sidebar.style.cursor = "grab";
-    sidebar.style.zIndex = "1";
-    sidebar.style.transition = "left 0.2s ease-out, top 0.2s ease-out"; // Smooth transition when stopping
-  };
-
-  sidebar.addEventListener("mousedown", onMouseDown);
-  document.addEventListener("mousemove", onMouseMove);
-  document.addEventListener("mouseup", onMouseUp);
-});
-
-
-
-
-
-
 // testimonials variables
 const testimonialsItem = document.querySelectorAll("[data-testimonials-item]");
 const modalContainer = document.querySelector("[data-modal-container]");

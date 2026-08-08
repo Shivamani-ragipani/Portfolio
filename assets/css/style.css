@@ -306,6 +306,14 @@ main {
   margin: 15px 12px;
   margin-bottom: 75px;
   min-width: 259px;
+  width: calc(100% - 24px);
+}
+
+.sidebar,
+article,
+.main-content {
+  max-width: 100%;
+  min-width: 0;
 }
 
 /* .main-content {
@@ -342,18 +350,24 @@ main {
 }
 
 #devAvatar {
-  width: 150px; 
-  height: 150px; 
+  display: block;
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  object-position: center 24%;
   transition: transform 0.3s ease-in-out;
 }
 
 #devAvatar:hover {
-  transform: scale(1.2); 
+  transform: scale(1.03);
 }
 
 .avatar-box {
   background: var(--bg-gradient-onyx);
   border-radius: 50%;
+  width: 100px;
+  height: 100px;
+  flex: 0 0 100px;
   overflow: hidden;
 }
 
@@ -363,6 +377,7 @@ main {
   font-weight: var(--fw-500);
   letter-spacing: -0.25px;
   margin-bottom: 10px;
+  overflow-wrap: anywhere;
 }
 
 .info-content .title {
@@ -370,9 +385,11 @@ main {
   background: var(--onyx);
   font-size: var(--fs-8);
   font-weight: var(--fw-300);
-  width: max-content;
+  width: fit-content;
+  max-width: 100%;
   padding: 3px 12px;
   border-radius: 8px;
+  overflow-wrap: anywhere;
 }
 
 .info_more-btn {
@@ -1380,7 +1397,14 @@ textarea.form-input::-webkit-resizer { display: none; }
 
   .avatar-box { border-radius: 30px; }
 
-  .avatar-box img { width: 120px; }
+  .avatar-box,
+  .avatar-box img {
+    width: 120px;
+    height: 120px;
+  }
+
+  .avatar-box { flex-basis: 120px; }
+  #devAvatar { width: 120px; height: 120px; }
 
   .info-content .name { margin-bottom: 15px; }
 
@@ -1853,8 +1877,9 @@ textarea.form-input::-webkit-resizer { display: none; }
   }
 
   .main-content {
-    min-width: 75%;
+    min-width: 0;
     width: 75%;
+    flex: 1 1 0;
     margin: 0;
   }
 
@@ -1867,6 +1892,8 @@ textarea.form-input::-webkit-resizer { display: none; }
   .sidebar {
     position: sticky;
     top: 60px;
+    width: 25%;
+    min-width: 0;
     max-height: max-content;
     height: 100%;
     margin-bottom: 0;
@@ -1876,7 +1903,14 @@ textarea.form-input::-webkit-resizer { display: none; }
 
   .sidebar-info { flex-direction: column; }
 
-  .avatar-box img { width: 150px; }
+  .avatar-box,
+  .avatar-box img {
+    width: 150px;
+    height: 150px;
+  }
+
+  .avatar-box { flex-basis: 150px; }
+  #devAvatar { width: 150px; height: 150px; }
 
   .info-content .name {
     white-space: nowrap;

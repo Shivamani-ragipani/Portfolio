@@ -1,0 +1,1026 @@
+/*-----------------------------------*\
+  #enhancements.css
+  Portfolio v2.0 — polish layer.
+
+  This file is loaded AFTER style.css and only refines what already exists:
+  spacing, depth, motion, focus states and a few new blocks (experience
+  timeline, hackathon highlight, back-to-top, scroll progress).
+  The original design language — dark onyx cards, gold accent, Poppins —
+  is preserved everywhere.
+\*-----------------------------------*/
+
+:root {
+  /* Motion tokens: one place to tune the whole site's feel. */
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 180ms;
+  --dur-base: 320ms;
+  --dur-slow: 620ms;
+
+  /* Depth tokens tuned to sit on the existing --smoky-black background. */
+  --glow-gold: 0 0 0 1px hsla(45, 100%, 72%, 0.28),
+               0 18px 40px -18px hsla(45, 100%, 60%, 0.45);
+  --ring-gold: 0 0 0 2px hsla(45, 100%, 72%, 0.6);
+}
+
+/* Honour the OS "reduce motion" setting for every enhancement below. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+/* Slightly more generous reading rhythm without touching the layout. */
+.about-text p { line-height: 1.75; letter-spacing: 0.1px; }
+.timeline-text { line-height: 1.7; }
+
+/*-----------------------------------*\
+  #AMBIENT BACKGROUND
+\*-----------------------------------*/
+
+/* Two very slow, very low-opacity gold auras. Fixed + GPU-composited,
+   so they never trigger layout or paint on scroll. */
+.ambient {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.ambient span {
+  position: absolute;
+  display: block;
+  width: 46vmax;
+  height: 46vmax;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.16;
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+.ambient span:nth-child(1) {
+  top: -18vmax;
+  left: -12vmax;
+  background: radial-gradient(circle, hsl(45, 100%, 62%) 0%, transparent 68%);
+  animation: ambient-drift-a 26s var(--ease-in-out-soft) infinite alternate;
+}
+
+.ambient span:nth-child(2) {
+  bottom: -20vmax;
+  right: -14vmax;
+  background: radial-gradient(circle, hsl(35, 100%, 58%) 0%, transparent 68%);
+  animation: ambient-drift-b 32s var(--ease-in-out-soft) infinite alternate;
+  opacity: 0.12;
+}
+
+@keyframes ambient-drift-a {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(6vmax, 5vmax, 0) scale(1.12); }
+}
+
+@keyframes ambient-drift-b {
+  from { transform: translate3d(0, 0, 0) scale(1.08); }
+  to   { transform: translate3d(-7vmax, -4vmax, 0) scale(1); }
+}
+
+/*-----------------------------------*\
+  #PRELOADER
+\*-----------------------------------*/
+
+.preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  background: var(--smoky-black);
+  transition: opacity var(--dur-slow) var(--ease-out-soft),
+              visibility var(--dur-slow) var(--ease-out-soft);
+}
+
+.preloader.is-done {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.preloader-mark {
+  font-size: 34px;
+  font-weight: var(--fw-600);
+  letter-spacing: 6px;
+  background: var(--text-gradient-yellow);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: mark-pulse 1.4s var(--ease-in-out-soft) infinite;
+}
+
+.preloader-bar {
+  width: 140px;
+  height: 2px;
+  margin-top: 18px;
+  border-radius: 2px;
+  background: var(--jet);
+  overflow: hidden;
+}
+
+.preloader-bar::after {
+  content: "";
+  display: block;
+  width: 40%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--text-gradient-yellow);
+  animation: bar-sweep 1.1s var(--ease-in-out-soft) infinite;
+}
+
+@keyframes mark-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.6; transform: scale(0.96); }
+}
+
+@keyframes bar-sweep {
+  from { transform: translateX(-120%); }
+  to   { transform: translateX(320%); }
+}
+
+/* Page entrance once the preloader clears. */
+body.is-ready main {
+  animation: page-enter var(--dur-slow) var(--ease-out-soft) both;
+}
+
+@keyframes page-enter {
+  from { opacity: 0; transform: translate3d(0, 14px, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+/*-----------------------------------*\
+  #SCROLL PROGRESS
+\*-----------------------------------*/
+
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 2px;
+  width: 100%;
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  background: var(--text-gradient-yellow);
+  box-shadow: 0 0 12px hsla(45, 100%, 65%, 0.55);
+  z-index: 20;
+  will-change: transform;
+}
+
+/*-----------------------------------*\
+  #SCROLL REVEALS
+\*-----------------------------------*/
+
+/* Applied by enhance.js via IntersectionObserver. Only opacity + transform
+   are animated, so reveals stay on the compositor. */
+[data-reveal] {
+  opacity: 0;
+  transform: translate3d(0, 18px, 0);
+  transition: opacity var(--dur-slow) var(--ease-out-soft),
+              transform var(--dur-slow) var(--ease-out-soft);
+  transition-delay: var(--reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+
+[data-reveal].is-visible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  will-change: auto;
+}
+
+/*-----------------------------------*\
+  #SIDEBAR POLISH
+\*-----------------------------------*/
+
+.sidebar {
+  position: relative;
+  transition: max-height var(--transition-2),
+              box-shadow var(--dur-base) var(--ease-out-soft),
+              border-color var(--dur-base) var(--ease-out-soft);
+}
+
+.sidebar:hover {
+  border-color: hsla(45, 100%, 72%, 0.22);
+  box-shadow: var(--shadow-1), 0 20px 48px -28px hsla(45, 100%, 60%, 0.4);
+}
+
+/* Soft breathing halo behind the avatar. */
+.avatar-box {
+  position: relative;
+  isolation: isolate;
+}
+
+.avatar-box::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    hsla(45, 100%, 72%, 0.55),
+    hsla(45, 100%, 72%, 0) 38%,
+    hsla(35, 100%, 68%, 0.45) 62%,
+    hsla(45, 100%, 72%, 0) 100%
+  );
+  z-index: -1;
+  opacity: 0.55;
+  animation: halo-spin 9s linear infinite;
+}
+
+@keyframes halo-spin {
+  to { transform: rotate(1turn); }
+}
+
+/* The original 1.2 scale blew the avatar out of its circle. */
+#devAvatar {
+  transition: transform var(--dur-base) var(--ease-out-soft),
+              filter var(--dur-base) var(--ease-out-soft);
+}
+
+#devAvatar:hover {
+  transform: scale(1.06);
+  filter: saturate(1.08);
+}
+
+.info-content .name {
+  background: linear-gradient(120deg, var(--white-1), var(--light-gray));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.info-content { min-width: 0; }
+
+.info-content .title {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+/* Small live dot next to the job title. */
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: hsl(140, 70%, 55%);
+  box-shadow: 0 0 0 0 hsla(140, 70%, 55%, 0.6);
+  animation: status-ping 2.2s var(--ease-in-out-soft) infinite;
+  flex-shrink: 0;
+}
+
+@keyframes status-ping {
+  0%   { box-shadow: 0 0 0 0 hsla(140, 70%, 55%, 0.55); }
+  70%  { box-shadow: 0 0 0 7px hsla(140, 70%, 55%, 0); }
+  100% { box-shadow: 0 0 0 0 hsla(140, 70%, 55%, 0); }
+}
+
+.contact-item {
+  border-radius: 10px;
+  padding: 4px;
+  margin: -4px;
+  transition: background var(--dur-fast) var(--ease-out-soft);
+}
+
+.contact-item:hover { background: hsla(0, 0%, 100%, 0.03); }
+
+.contact-link {
+  position: relative;
+  width: max-content;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color var(--dur-fast) var(--ease-out-soft);
+}
+
+.contact-link:hover { color: var(--orange-yellow-crayola); }
+
+.social-item .social-link {
+  transition: color var(--dur-fast) var(--ease-out-soft),
+              transform var(--dur-fast) var(--ease-out-soft);
+}
+
+.social-item .social-link:hover {
+  color: var(--orange-yellow-crayola);
+  transform: translateY(-3px);
+}
+
+/* Copy-email action */
+.sidebar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.ghost-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border-radius: 10px;
+  font-size: var(--fs-8);
+  color: var(--light-gray);
+  background: var(--border-gradient-onyx);
+  box-shadow: var(--shadow-1);
+  position: relative;
+  isolation: isolate;
+  transition: color var(--dur-fast) var(--ease-out-soft),
+              transform var(--dur-fast) var(--ease-out-soft),
+              box-shadow var(--dur-base) var(--ease-out-soft);
+}
+
+.ghost-btn::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border-radius: inherit;
+  background: var(--bg-gradient-jet);
+  z-index: -1;
+  transition: background var(--dur-base) var(--ease-out-soft);
+}
+
+.ghost-btn:hover,
+.ghost-btn:focus-visible {
+  color: var(--orange-yellow-crayola);
+  transform: translateY(-2px);
+  box-shadow: var(--glow-gold);
+}
+
+.ghost-btn:active { transform: translateY(0); }
+
+.ghost-btn ion-icon { font-size: 15px; }
+
+/*-----------------------------------*\
+  #NAVBAR POLISH
+\*-----------------------------------*/
+
+.navbar {
+  transition: box-shadow var(--dur-base) var(--ease-out-soft);
+}
+
+.navbar-link {
+  position: relative;
+  border-radius: 8px;
+  transition: color var(--dur-fast) var(--ease-out-soft),
+              transform var(--dur-fast) var(--ease-out-soft);
+}
+
+.navbar-link::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  width: 0;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--text-gradient-yellow);
+  transform: translateX(-50%);
+  transition: width var(--dur-base) var(--ease-out-soft);
+}
+
+.navbar-link:hover { color: var(--white-2); }
+.navbar-link:hover::after { width: 55%; }
+.navbar-link.active::after { width: 70%; }
+
+/*-----------------------------------*\
+  #CARDS: SERVICE / TIMELINE / PROJECT
+\*-----------------------------------*/
+
+/* The original `scale(1.05)` softened text on hover; a lift keeps it crisp
+   and reads more premium. */
+.service-item {
+  transition: transform var(--dur-base) var(--ease-out-soft),
+              box-shadow var(--dur-base) var(--ease-out-soft);
+  will-change: transform;
+}
+
+.service-item:hover {
+  transform: translate3d(0, -6px, 0);
+  box-shadow: var(--shadow-2), 0 22px 44px -26px hsla(45, 100%, 60%, 0.5);
+}
+
+.service-item::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(140deg, hsla(45, 100%, 72%, 0.5), transparent 55%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity var(--dur-base) var(--ease-out-soft);
+  pointer-events: none;
+}
+
+.service-item:hover::after { opacity: 1; }
+
+.service-icon-box img {
+  transition: transform var(--dur-base) var(--ease-out-soft);
+}
+
+.service-item:hover .service-icon-box img {
+  transform: translateY(-3px) rotate(-4deg) scale(1.06);
+}
+
+/* Timeline: animated rail + reactive markers. */
+.timeline-item {
+  transition: transform var(--dur-base) var(--ease-out-soft);
+}
+
+.timeline-item:hover { transform: translateX(4px); }
+
+.timeline-item-title {
+  transition: color var(--dur-fast) var(--ease-out-soft);
+}
+
+.timeline-item:hover .timeline-item-title {
+  color: var(--orange-yellow-crayola);
+}
+
+.timeline-list .timeline-item::before {
+  transition: transform var(--dur-base) var(--ease-out-soft),
+              box-shadow var(--dur-base) var(--ease-out-soft);
+}
+
+.timeline-list .timeline-item:hover::before {
+  transform: scale(1.5);
+  box-shadow: 0 0 0 4px hsla(45, 100%, 72%, 0.18);
+}
+
+/* Certificate "View" links become proper pills. */
+.timeline-item > a[target="_blank"] span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: var(--fs-8);
+  color: var(--orange-yellow-crayola);
+  border: 1px solid hsla(45, 100%, 72%, 0.35);
+  transition: background var(--dur-fast) var(--ease-out-soft),
+              transform var(--dur-fast) var(--ease-out-soft);
+}
+
+.timeline-item > a[target="_blank"]:hover span {
+  background: hsla(45, 100%, 72%, 0.12);
+  transform: translateY(-1px);
+}
+
+/*-----------------------------------*\
+  #SKILLS
+\*-----------------------------------*/
+
+.skill-progress-fill {
+  /* Width is driven from --skill-width by enhance.js when the bar scrolls
+     into view, so the fill animates instead of appearing pre-filled. */
+  width: 0;
+  transition: width 1.1s var(--ease-out-soft);
+  position: relative;
+  overflow: hidden;
+}
+
+.skills-item.is-visible .skill-progress-fill {
+  width: var(--skill-width, 0%);
+}
+
+.skill-progress-fill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 20%,
+    hsla(0, 0%, 100%, 0.35) 50%,
+    transparent 80%
+  );
+  transform: translateX(-100%);
+  animation: skill-shimmer 2.8s var(--ease-in-out-soft) infinite;
+}
+
+@keyframes skill-shimmer {
+  0%, 60% { transform: translateX(-100%); }
+  100%    { transform: translateX(100%); }
+}
+
+/*-----------------------------------*\
+  #EXPERIENCE + ACHIEVEMENT
+\*-----------------------------------*/
+
+.experience-card {
+  position: relative;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 20px;
+  border-radius: 14px;
+  background: var(--border-gradient-onyx);
+  box-shadow: var(--shadow-2);
+  z-index: 1;
+  transition: transform var(--dur-base) var(--ease-out-soft),
+              box-shadow var(--dur-base) var(--ease-out-soft);
+}
+
+.experience-card > div:last-child { min-width: 0; }
+
+.experience-card::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border-radius: inherit;
+  background: var(--bg-gradient-jet);
+  z-index: -1;
+}
+
+.experience-card:hover {
+  transform: translate3d(0, -5px, 0);
+  box-shadow: var(--shadow-2), 0 22px 44px -26px hsla(45, 100%, 60%, 0.45);
+}
+
+.experience-badge {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  color: var(--orange-yellow-crayola);
+  background: hsla(45, 100%, 72%, 0.1);
+  border: 1px solid hsla(45, 100%, 72%, 0.24);
+}
+
+.experience-role {
+  color: var(--white-2);
+  font-size: var(--fs-4);
+  margin-bottom: 3px;
+}
+
+.experience-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.experience-company {
+  color: var(--orange-yellow-crayola);
+  font-size: var(--fs-7);
+  font-weight: var(--fw-500);
+}
+
+.experience-period {
+  font-size: var(--fs-8);
+  color: var(--light-gray-70);
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--jet);
+}
+
+.experience-text {
+  color: var(--light-gray);
+  font-size: var(--fs-7);
+  font-weight: var(--fw-300);
+  line-height: 1.7;
+}
+
+/* Hackathon win — the one place we allow a touch more presence. */
+.achievement {
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
+  padding: 22px;
+  background: var(--border-gradient-onyx);
+  box-shadow: var(--shadow-3);
+  z-index: 1;
+}
+
+.achievement::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border-radius: inherit;
+  background: var(--bg-gradient-yellow-2);
+  z-index: -1;
+}
+
+/* Slow sheen sweeping across the trophy card. */
+.achievement::after {
+  content: "";
+  position: absolute;
+  top: -60%;
+  left: -30%;
+  width: 40%;
+  height: 220%;
+  background: linear-gradient(
+    100deg,
+    transparent,
+    hsla(45, 100%, 80%, 0.09),
+    transparent
+  );
+  transform: rotate(18deg) translateX(-40%);
+  animation: sheen 6.5s var(--ease-in-out-soft) infinite;
+  pointer-events: none;
+}
+
+@keyframes sheen {
+  0%, 65% { transform: rotate(18deg) translate3d(-60%, 0, 0); }
+  100%    { transform: rotate(18deg) translate3d(420%, 0, 0); }
+}
+
+.achievement-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.achievement-trophy {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  font-size: 24px;
+  color: var(--smoky-black);
+  background: var(--text-gradient-yellow);
+  box-shadow: 0 10px 26px -12px hsla(45, 100%, 62%, 0.8);
+  animation: trophy-float 4.5s var(--ease-in-out-soft) infinite;
+}
+
+@keyframes trophy-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-5px); }
+}
+
+.achievement-tag {
+  display: inline-block;
+  font-size: var(--fs-8);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--orange-yellow-crayola);
+  margin-bottom: 3px;
+}
+
+.achievement-title {
+  color: var(--white-1);
+  font-size: var(--fs-2);
+}
+
+.achievement-text {
+  color: var(--light-gray);
+  font-size: var(--fs-7);
+  font-weight: var(--fw-300);
+  line-height: 1.75;
+  margin-bottom: 14px;
+  position: relative;
+}
+
+.achievement-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  position: relative;
+}
+
+.chip {
+  font-size: var(--fs-8);
+  color: var(--light-gray);
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: hsla(0, 0%, 100%, 0.04);
+  border: 1px solid var(--jet);
+  transition: transform var(--dur-fast) var(--ease-out-soft),
+              border-color var(--dur-fast) var(--ease-out-soft),
+              color var(--dur-fast) var(--ease-out-soft);
+}
+
+.chip:hover {
+  transform: translateY(-2px);
+  color: var(--orange-yellow-crayola);
+  border-color: hsla(45, 100%, 72%, 0.4);
+}
+
+/*-----------------------------------*\
+  #PROJECTS
+\*-----------------------------------*/
+
+.filter-list button,
+.select-item button,
+.filter-select {
+  border-radius: 8px;
+  transition: color var(--dur-fast) var(--ease-out-soft),
+              background var(--dur-fast) var(--ease-out-soft);
+}
+
+.filter-list button {
+  position: relative;
+  padding: 4px 2px;
+}
+
+.filter-list button::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 1px;
+  background: var(--text-gradient-yellow);
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform var(--dur-base) var(--ease-out-soft);
+}
+
+.filter-list button:hover::after,
+.filter-list button.active::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+.project-item > a { border-radius: 16px; }
+
+.project-item > a:hover .project-title { color: var(--orange-yellow-crayola); }
+
+.project-title {
+  transition: color var(--dur-fast) var(--ease-out-soft);
+}
+
+.project-img {
+  border-radius: 16px;
+  transition: box-shadow var(--dur-base) var(--ease-out-soft),
+              transform var(--dur-base) var(--ease-out-soft);
+}
+
+.project-item > a:hover .project-img {
+  transform: translate3d(0, -4px, 0);
+  box-shadow: 0 24px 44px -24px hsla(45, 100%, 60%, 0.5);
+}
+
+.project-img img {
+  transition: transform var(--dur-slow) var(--ease-out-soft),
+              filter var(--dur-base) var(--ease-out-soft);
+}
+
+.project-item > a:hover img {
+  transform: scale(1.08);
+  filter: saturate(1.1);
+}
+
+/* Fade filtered cards in rather than snapping them. */
+.project-item.active {
+  animation: card-in var(--dur-base) var(--ease-out-soft) backwards;
+}
+
+@keyframes card-in {
+  from { opacity: 0; transform: translate3d(0, 10px, 0) scale(0.985); }
+  to   { opacity: 1; transform: none; }
+}
+
+/*-----------------------------------*\
+  #CONTACT
+\*-----------------------------------*/
+
+.mapbox {
+  transition: border-color var(--dur-base) var(--ease-out-soft);
+}
+
+.mapbox:hover { border-color: hsla(45, 100%, 72%, 0.3); }
+
+.form-input {
+  transition: border-color var(--dur-fast) var(--ease-out-soft),
+              box-shadow var(--dur-base) var(--ease-out-soft),
+              background var(--dur-fast) var(--ease-out-soft);
+}
+
+.form-input:focus {
+  border-color: hsla(45, 100%, 72%, 0.65);
+  box-shadow: 0 0 0 3px hsla(45, 100%, 72%, 0.1);
+}
+
+.form-btn {
+  position: relative;
+  overflow: hidden;
+  transition: transform var(--dur-fast) var(--ease-out-soft),
+              box-shadow var(--dur-base) var(--ease-out-soft),
+              color var(--dur-fast) var(--ease-out-soft);
+}
+
+.form-btn:not(:disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: var(--glow-gold);
+}
+
+.form-btn:not(:disabled):active { transform: translateY(0); }
+
+.form-btn:disabled { cursor: not-allowed; }
+
+/*-----------------------------------*\
+  #BACK TO TOP
+\*-----------------------------------*/
+
+.to-top {
+  position: fixed;
+  right: 18px;
+  bottom: 84px;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 18px;
+  color: var(--orange-yellow-crayola);
+  background: hsla(240, 1%, 17%, 0.85);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--jet);
+  box-shadow: var(--shadow-2);
+  opacity: 0;
+  visibility: hidden;
+  transform: translate3d(0, 12px, 0);
+  transition: opacity var(--dur-base) var(--ease-out-soft),
+              visibility var(--dur-base) var(--ease-out-soft),
+              transform var(--dur-base) var(--ease-out-soft),
+              box-shadow var(--dur-base) var(--ease-out-soft);
+  z-index: 6;
+}
+
+.to-top.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translate3d(0, 0, 0);
+}
+
+.to-top:hover {
+  box-shadow: var(--glow-gold);
+  transform: translate3d(0, -3px, 0);
+}
+
+/*-----------------------------------*\
+  #TOAST
+\*-----------------------------------*/
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 96px;
+  transform: translate3d(-50%, 14px, 0);
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-size: var(--fs-8);
+  color: var(--smoky-black);
+  background: var(--text-gradient-yellow);
+  box-shadow: 0 14px 30px -14px hsla(45, 100%, 60%, 0.9);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--dur-base) var(--ease-out-soft),
+              transform var(--dur-base) var(--ease-out-soft),
+              visibility var(--dur-base);
+  z-index: 30;
+  pointer-events: none;
+}
+
+.toast.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translate3d(-50%, 0, 0);
+}
+
+/*-----------------------------------*\
+  #ACCESSIBILITY
+\*-----------------------------------*/
+
+.skip-link {
+  position: absolute;
+  left: 12px;
+  top: -60px;
+  z-index: 200;
+  padding: 10px 16px;
+  border-radius: 0 0 10px 10px;
+  font-size: var(--fs-8);
+  color: var(--smoky-black);
+  background: var(--orange-yellow-crayola);
+  transition: top var(--dur-base) var(--ease-out-soft);
+}
+
+.skip-link:focus { top: 0; }
+
+:is(a, button, input, textarea, [tabindex]):focus-visible {
+  outline: none;
+  box-shadow: var(--ring-gold);
+  border-radius: 8px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Reserve image space so lazy-loaded project shots cause no layout shift. */
+.project-img img,
+.resized-image {
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  width: 100%;
+  height: auto;
+}
+
+/*-----------------------------------*\
+  #RESPONSIVE TWEAKS
+\*-----------------------------------*/
+
+@media (min-width: 580px) {
+  .to-top { right: 26px; bottom: 96px; }
+}
+
+@media (min-width: 768px) {
+  .achievement { padding: 28px; }
+}
+
+@media (min-width: 1250px) {
+  /* The nav is docked at the top on desktop, so the button can sit lower. */
+  .sidebar { position: sticky; }
+  .to-top { bottom: 34px; right: 34px; }
+  .toast { bottom: 34px; }
+}
+
+/*-----------------------------------*\
+  #POINTER SPOTLIGHT
+  Cursor-following light on cards. Driven by --mx/--my written from JS on
+  the element itself, so only that card repaints.
+\*-----------------------------------*/
+
+[data-spotlight] { position: relative; }
+
+[data-spotlight]::before {
+  /* Some cards already own ::before for their inner background; the light is
+     layered as a separate, non-interactive overlay instead. */
+  pointer-events: none;
+}
+
+.spotlight-layer,
+[data-spotlight] > .spotlight-layer { display: none; }
+
+[data-spotlight] {
+  background-image: radial-gradient(
+    260px circle at var(--mx, -300px) var(--my, -300px),
+    hsla(45, 100%, 72%, 0.08),
+    transparent 70%
+  );
+  background-repeat: no-repeat;
+}
+
+/*-----------------------------------*\
+  #SPACING RHYTHM
+\*-----------------------------------*/
+
+.achievement { margin-bottom: 35px; }
+
+.about .achievement + .service { margin-top: 0; }
+
+.experience-card + .experience-card { margin-top: 16px; }
+
+.timeline + .timeline,
+.timeline + .skill { margin-top: 4px; }
+
+/* Quick-action buttons sit under the socials and share the row evenly. */
+.sidebar-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+  padding: 0 7px;
+}
+
+.ghost-btn {
+  justify-content: center;
+  min-width: 0;
+  white-space: nowrap;
+}
