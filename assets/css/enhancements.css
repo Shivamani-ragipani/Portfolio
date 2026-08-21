@@ -158,14 +158,7 @@ body {
 }
 
 /* Page entrance once the preloader clears. */
-body.is-ready main {
-  animation: page-enter var(--dur-slow) var(--ease-out-soft) both;
-}
-
-@keyframes page-enter {
-  from { opacity: 0; transform: translate3d(0, 14px, 0); }
-  to   { opacity: 1; transform: translate3d(0, 0, 0); }
-}
+body.is-ready main { opacity: 1; }
 
 /*-----------------------------------*\
   #SCROLL PROGRESS
@@ -955,6 +948,14 @@ body.is-ready main {
 /*-----------------------------------*\
   #RESPONSIVE TWEAKS
 \*-----------------------------------*/
+
+@media (max-width: 579px) {
+  main { margin-bottom: 64px; }
+
+  .sidebar { margin-bottom: 16px; }
+
+  .service { margin-bottom: 20px; }
+}
 
 @media (min-width: 580px) {
   .to-top { right: 26px; bottom: 96px; }
